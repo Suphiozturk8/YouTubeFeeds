@@ -1,20 +1,20 @@
 import config from "./env.ts";
-import { connect } from "redis";
+import { connect } from "https://deno.land/x/redis/mod.ts";
 
-const redis = await connect({
-  hostname: config.REDIS_URI.split(":")[0],
-  port: parseInt(config.REDIS_URI.split(":")[1]),
-  password: config.REDIS_PASSWORD,
-});
+let redis: any;
 
-// Hata durumunda yeniden bağlanma
-redis.on("error", (err) => {
-  console.error("Redis bağlantı hatası:", err);
-});
-
-redis.on("connect", () => {
+try {
+  redis = await connect({
+    hostname: config.REDIS_URI.split(":")[0],
+    port: parseInt(config.REDIS_URI.split(":")[1]),
+    password: config.REDIS_PASSWORD,
+  });
+  
   console.log("✅ Redis bağlantısı kuruldu");
-});
+} catch (err) {
+  console.error("Redis bağlantı hatası:", err);
+  throw err;
+}
 
 // Tüm feed'leri getir
 export async function getAllFeeds(): Promise<Record<string, number[]>> {
@@ -149,3 +149,6 @@ export async function cleanupFeeds(): Promise<number> {
     return 0;
   }
 }
+
+// Redis bağlantısını export et (diğer modüller için)
+export { redis };
